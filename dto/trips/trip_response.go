@@ -5,6 +5,7 @@ import "time"
 type TripResponse struct {
 	Id             int       `json:"id"`
 	Title          string    `json:"title" form:"title" validate:"required"`
+	CountryId      int       `json:"country_id"`
 	Accomodation   string    `json:"accomodation" form:"accomodation" validate:"required"`
 	Transportation string    `json:"transportation" form:"transportation" validate:"required"`
 	Eat            string    `json:"eat" form:"eat" validate:"required"`

@@ -210,6 +210,7 @@ func convertResponseTrip(u models.Trip) tripsdto.TripResponse {
 	return tripsdto.TripResponse{
 		Id:             u.Id,
 		Title:          u.Title,
+		CountryId:      u.CountryId,
 		Accomodation:   u.Accomodation,
 		Transportation: u.Transportation,
 		Eat:            u.Eat,

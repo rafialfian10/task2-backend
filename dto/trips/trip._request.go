@@ -17,7 +17,7 @@ type CreateTripRequest struct {
 
 type UpdateTripRequest struct {
 	Title          string `json:"title" form:"title"`
-	CountryId      int    `json:"country_id" validate:"required"`
+	CountryId      int    `json:"country_id"`
 	Accomodation   string `json:"accomodation" form:"accomodation"`
 	Transportation string `json:"transportation" form:"transportation"`
 	Eat            string `json:"eat" form:"eat"`
