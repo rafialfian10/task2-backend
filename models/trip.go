@@ -5,7 +5,7 @@ import "time"
 type Trip struct {
 	Id             int             `json:"id"`
 	Title          string          `json:"title" form:"title" gorm:"type: varchar(255)"`
-	CountryId      int             `json:"country_id" gorm:"type: int"`
+	CountryId      int             `json:"country_id"`
 	Country        CountryResponse `json:"country"`
 	Accomodation   string          `json:"accomodation" form:"accmodation" gorm:"type: varchar(255)"`
 	Transportation string          `json:"transportation" form:"transportation" gorm:"type: varchar(255)"`
@@ -19,33 +19,22 @@ type Trip struct {
 	Image          string          `json:"image" form:"image" gorm:"type: varchar(255)"`
 }
 
-// type ProductResponse struct {
-// 	ID     int    `json:"id"`
-// 	Name   string `json:"name"`
-// 	Desc   string `json:"desc"`
-// 	Price  int    `json:"price"`
-// 	Image  string `json:"image"`
-// 	Qty    int    `json:"qty"`
-// 	UserID int    `json:"-"`
-// 	// User       UsersProfileResponse `json:"user"`
-// 	Country   []Country `json:"category" gorm:"hasOne:product_categories"`
-// 	CountryID []int     `json:"-" form:"category_id" gorm:"-"`
-// }
+type TripResponse struct {
+	Id             int       `json:"id"`
+	Title          string    `json:"title"`
+	CountryId      int       `json:"country_id"`
+	Accomodation   string    `json:"accomodation"`
+	Transportation string    `json:"transportation"`
+	Eat            string    `json:"eat"`
+	Day            int       `json:"day"`
+	Night          int       `json:"night"`
+	DateTrip       time.Time `json:"datetrip"`
+	Price          int       `json:"price"`
+	Quota          int       `json:"quota"`
+	Description    string    `json:"description"`
+	Image          string    `json:"image"`
+}
 
-// type ProductUserResponse struct {
-// 	ID     int    `json:"id"`
-// 	Name   string `json:"name"`
-// 	Desc   string `json:"desc"`
-// 	Price  int    `json:"price"`
-// 	Image  string `json:"image"`
-// 	Qty    int    `json:"qty"`
-// 	UserID int    `json:"-"`
-// }
-
-// func (ProductResponse) TableName() string {
-// 	return "products"
-// }
-
-// func (ProductUserResponse) TableName() string {
-// 	return "products"
-// }
+func (TripResponse) TableName() string {
+	return "trips"
+}

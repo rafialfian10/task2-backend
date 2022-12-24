@@ -15,11 +15,11 @@ type User struct {
 }
 
 // relasi dengan tabel lain
-type UsersProfileResponse struct {
+type UsersResponse struct {
 	Id   int    `json:"id"`
 	Name string `json:"name"`
 }
 
-func (UsersProfileResponse) TableName() string {
+func (UsersResponse) TableName() string {
 	return "users"
 }

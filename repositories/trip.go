@@ -33,7 +33,7 @@ func (r *repository) GetTrip(ID int) (models.Trip, error) {
 }
 
 func (r *repository) CreateTrip(trip models.Trip) (models.Trip, error) {
-	err := r.db.Create(&trip).Error
+	err := r.db.Preload("Country").Create(&trip).Error
 
 	return trip, err
 }

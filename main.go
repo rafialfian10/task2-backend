@@ -11,6 +11,7 @@ import (
 )
 
 func main() {
+
 	route := mux.NewRouter()
 
 	// initial DB
@@ -19,6 +20,7 @@ func main() {
 	// run migration
 	database.RunMigration()
 
+	route.PathPrefix("/uploads").Handler(http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))))
 	routes.RouteInit(route.PathPrefix("/api/v1").Subrouter())
 
 	fmt.Println("server running localhost:3000")

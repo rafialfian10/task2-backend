@@ -14,6 +14,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
+var path_file = "http://localhost:3000/uploads/"
+
 type handlerTrip struct {
 	TripRepository repositories.TripRepository
 }
@@ -31,6 +33,10 @@ func (h *handlerTrip) FindTrips(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(err.Error())
 	}
 
+	for i, p := range trips {
+		trips[i].Image = path_file + p.Image
+	}
+
 	w.WriteHeader(http.StatusOK)
 	response := dto.SuccessResult{Code: http.StatusOK, Data: trips}
 	json.NewEncoder(w).Encode(response)
@@ -41,7 +47,7 @@ func (h *handlerTrip) GetTrip(w http.ResponseWriter, r *http.Request) {
 
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 
-	data, err := h.TripRepository.GetTrip(id)
+	trip, err := h.TripRepository.GetTrip(id)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
@@ -49,21 +55,47 @@ func (h *handlerTrip) GetTrip(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	trip.Image = path_file + trip.Image
+
 	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Code: http.StatusOK, Data: data}
+	response := dto.SuccessResult{Code: http.StatusOK, Data: trip}
 	json.NewEncoder(w).Encode(response)
 }
 
 func (h *handlerTrip) CreateTrip(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	request := new(tripsdto.CreateTripRequest)
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
-		json.NewEncoder(w).Encode(response)
-		return
+	dataContex := r.Context().Value("dataFile") // add this code
+	filename := dataContex.(string)
+
+	//parse data
+	countryId, _ := strconv.Atoi(r.FormValue("country_id"))
+	day, _ := strconv.Atoi(r.FormValue("day"))
+	night, _ := strconv.Atoi(r.FormValue("night"))
+	price, _ := strconv.Atoi(r.FormValue("price"))
+	quota, _ := strconv.Atoi(r.FormValue("quota"))
+
+	request := tripsdto.CreateTripRequest{
+		Title:          r.FormValue("title"),
+		CountryId:      countryId,
+		Accomodation:   r.FormValue("accomodation"),
+		Transportation: r.FormValue("transportation"),
+		Eat:            r.FormValue("eat"),
+		Day:            day,
+		Night:          night,
+		DateTrip:       r.FormValue("datetrip"),
+		Price:          price,
+		Quota:          quota,
+		Description:    r.FormValue("description"),
+		Image:          filename,
 	}
+
+	// if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+	// 	w.WriteHeader(http.StatusBadRequest)
+	// 	response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
+	// 	json.NewEncoder(w).Encode(response)
+	// 	return
+	// }
 
 	validation := validator.New()
 	err := validation.Struct(request)

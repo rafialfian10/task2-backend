@@ -11,9 +11,10 @@ func RunMigration() {
 	// koneksi database akan melakukan auto migrasi struct user ke database
 	err := mysql.DB.AutoMigrate(
 		&models.User{},
-		&models.Profile{},
 		&models.Trip{},
 		&models.Country{},
+		&models.Transaction{},
+		// &models.Profile{},
 	)
 	// jika tidak ada error
 	if err != nil {

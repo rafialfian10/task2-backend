@@ -2,7 +2,7 @@ package models
 
 type Country struct {
 	Id   int    `json:"id" gorm:"primary_key:auto_increment"`
-	Name string `json:"name"`
+	Name string `json:"name" gorm:"type: varchar(255)"`
 }
 
 // relasi dengan tabel lain
