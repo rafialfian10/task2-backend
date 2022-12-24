@@ -3,10 +3,10 @@ package models
 import "time"
 
 type Trip struct {
-	Id             int             `json:"id"`
+	Id             int             `json:"id" gorm:"primary_key:auto_increment"`
 	Title          string          `json:"title" form:"title" gorm:"type: varchar(255)"`
-	CountryId      int             `json:"country_id"`
-	Country        CountryResponse `json:"country"`
+	CountryId      int             `json:"-"`
+	Country        CountryResponse `json:"country_id"`
 	Accomodation   string          `json:"accomodation" form:"accmodation" gorm:"type: varchar(255)"`
 	Transportation string          `json:"transportation" form:"transportation" gorm:"type: varchar(255)"`
 	Eat            string          `json:"eat" form:"eat" gorm:"type: varchar(255)"`

@@ -13,6 +13,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
+var path_file_trans = "http://localhost:3000/uploads/"
+
 type handlerTransaction struct {
 	TransactionRepository repositories.TransactionRepository
 }
@@ -24,14 +26,18 @@ func HandlerTransaction(TransactionRepository repositories.TransactionRepository
 func (h *handlerTransaction) FindTransactions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	users, err := h.TransactionRepository.FindTransactions()
+	transaction, err := h.TransactionRepository.FindTransactions()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(err.Error())
 	}
 
+	for i, p := range transaction {
+		transaction[i].Attachment = path_file_trans + p.Attachment
+	}
+
 	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Code: http.StatusOK, Data: users}
+	response := dto.SuccessResult{Code: http.StatusOK, Data: transaction}
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -40,7 +46,7 @@ func (h *handlerTransaction) GetTransaction(w http.ResponseWriter, r *http.Reque
 
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 
-	user, err := h.TransactionRepository.GetTransaction(id)
+	trans, err := h.TransactionRepository.GetTransaction(id)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
@@ -48,21 +54,39 @@ func (h *handlerTransaction) GetTransaction(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	trans.Attachment = path_file_trans + trans.Attachment
+
 	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Code: http.StatusOK, Data: user}
+	response := dto.SuccessResult{Code: http.StatusOK, Data: trans}
 	json.NewEncoder(w).Encode(response)
 }
 
 func (h *handlerTransaction) CreateTransaction(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	request := new(transactionsdto.CreateTransactionRequest)
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
-		json.NewEncoder(w).Encode(response)
-		return
+	dataContex := r.Context().Value("dataFile") // add this code
+	filename := dataContex.(string)
+
+	//parse data
+	counterQty, _ := strconv.Atoi(r.FormValue("qty"))
+	total, _ := strconv.Atoi(r.FormValue("total"))
+	TripId, _ := strconv.Atoi(r.FormValue("trip_id"))
+
+	request := transactionsdto.CreateTransactionRequest{
+		CounterQty: counterQty,
+		Total:      total,
+		Status:     r.FormValue("status"),
+		Attachment: filename,
+		TripId:     TripId,
 	}
+
+	// request := new(transactionsdto.CreateTransactionRequest)
+	// if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+	// 	w.WriteHeader(http.StatusBadRequest)
+	// 	response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
+	// 	json.NewEncoder(w).Encode(response)
+	// 	return
+	// }
 
 	validation := validator.New()
 	err := validation.Struct(request)
@@ -77,7 +101,8 @@ func (h *handlerTransaction) CreateTransaction(w http.ResponseWriter, r *http.Re
 		CounterQty: request.CounterQty,
 		Total:      request.Total,
 		Status:     request.Status,
-		Attacment:  request.Attacment,
+		Attachment: request.Attachment,
+		TripId:     request.TripId,
 	}
 
 	data, err := h.TransactionRepository.CreateTransaction(transaction)
@@ -124,8 +149,12 @@ func (h *handlerTransaction) UpdateTransaction(w http.ResponseWriter, r *http.Re
 		transaction.Status = request.Status
 	}
 
-	if request.Attacment != "" {
-		transaction.Attacment = request.Attacment
+	if request.Attachment != "" {
+		transaction.Attachment = request.Attachment
+	}
+
+	if request.TripId != 0 {
+		transaction.Attachment = request.Attachment
 	}
 
 	data, err := h.TransactionRepository.UpdateTransaction(transaction)
@@ -172,6 +201,7 @@ func convertResponseTransaction(u models.Transaction) transactionsdto.Transactio
 		CounterQty: u.CounterQty,
 		Total:      u.Total,
 		Status:     u.Status,
-		Attacment:  u.Attacment,
+		Attacment:  u.Attachment,
+		TripId:     u.TripId,
 	}
 }

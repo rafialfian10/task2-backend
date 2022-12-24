@@ -14,7 +14,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var path_file = "http://localhost:3000/uploads/"
+var path_file_trip = "http://localhost:3000/uploads/"
 
 type handlerTrip struct {
 	TripRepository repositories.TripRepository
@@ -34,7 +34,7 @@ func (h *handlerTrip) FindTrips(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for i, p := range trips {
-		trips[i].Image = path_file + p.Image
+		trips[i].Image = path_file_trip + p.Image
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -55,7 +55,7 @@ func (h *handlerTrip) GetTrip(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	trip.Image = path_file + trip.Image
+	trip.Image = path_file_trip + trip.Image
 
 	w.WriteHeader(http.StatusOK)
 	response := dto.SuccessResult{Code: http.StatusOK, Data: trip}
@@ -69,7 +69,7 @@ func (h *handlerTrip) CreateTrip(w http.ResponseWriter, r *http.Request) {
 	filename := dataContex.(string)
 
 	//parse data
-	countryId, _ := strconv.Atoi(r.FormValue("country_id"))
+	CountryId, _ := strconv.Atoi(r.FormValue("country_id"))
 	day, _ := strconv.Atoi(r.FormValue("day"))
 	night, _ := strconv.Atoi(r.FormValue("night"))
 	price, _ := strconv.Atoi(r.FormValue("price"))
@@ -77,7 +77,7 @@ func (h *handlerTrip) CreateTrip(w http.ResponseWriter, r *http.Request) {
 
 	request := tripsdto.CreateTripRequest{
 		Title:          r.FormValue("title"),
-		CountryId:      countryId,
+		CountryId:      CountryId,
 		Accomodation:   r.FormValue("accomodation"),
 		Transportation: r.FormValue("transportation"),
 		Eat:            r.FormValue("eat"),

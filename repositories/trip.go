@@ -20,32 +20,32 @@ func RepositoriyTrip(db *gorm.DB) *repository {
 
 func (r *repository) FindTrips() ([]models.Trip, error) {
 	var trips []models.Trip
-	err := r.db.Preload("Country").Find(&trips).Error
+	err := r.db.Debug().Preload("Country").Find(&trips).Error
 
 	return trips, err
 }
 
 func (r *repository) GetTrip(ID int) (models.Trip, error) {
 	var trip models.Trip
-	err := r.db.Preload("Country").First(&trip, ID).Error
+	err := r.db.Debug().Preload("Country").First(&trip, ID).Error
 
 	return trip, err
 }
 
 func (r *repository) CreateTrip(trip models.Trip) (models.Trip, error) {
-	err := r.db.Preload("Country").Create(&trip).Error
+	err := r.db.Debug().Preload("Country").Create(&trip).Error
 
 	return trip, err
 }
 
 func (r *repository) UpdateTrip(trip models.Trip) (models.Trip, error) {
-	err := r.db.Save(&trip).Error
+	err := r.db.Debug().Preload("Country").Save(&trip).Error
 
 	return trip, err
 }
 
 func (r *repository) DeleteTrip(trip models.Trip) (models.Trip, error) {
-	err := r.db.Delete(&trip).Error
+	err := r.db.Debug().Delete(&trip).Error
 
 	return trip, err
 }

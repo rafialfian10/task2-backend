@@ -14,7 +14,6 @@ func RunMigration() {
 		&models.Trip{},
 		&models.Country{},
 		&models.Transaction{},
-		// &models.Profile{},
 	)
 	// jika tidak ada error
 	if err != nil {
