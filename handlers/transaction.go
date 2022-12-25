@@ -163,7 +163,7 @@ func (h *handlerTransaction) UpdateTransaction(w http.ResponseWriter, r *http.Re
 	}
 
 	// image
-	if r.FormValue("image") != "" {
+	if request.Image != "" {
 		transaction.Image = request.Image
 	}
 

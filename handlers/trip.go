@@ -24,6 +24,7 @@ func HandlerTrip(TripRepository repositories.TripRepository) *handlerTrip {
 	return &handlerTrip{TripRepository}
 }
 
+// function find trips (all trip)
 func (h *handlerTrip) FindTrips(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -33,8 +34,9 @@ func (h *handlerTrip) FindTrips(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(err.Error())
 	}
 
-	for i, p := range trips {
-		trips[i].Image = path_file_trip + p.Image
+	// looping image pada trip
+	for i, data := range trips {
+		trips[i].Image = path_file_trip + data.Image
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -42,6 +44,7 @@ func (h *handlerTrip) FindTrips(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+// function get trip
 func (h *handlerTrip) GetTrip(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -62,6 +65,7 @@ func (h *handlerTrip) GetTrip(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+// function create trip
 func (h *handlerTrip) CreateTrip(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -76,7 +80,7 @@ func (h *handlerTrip) CreateTrip(w http.ResponseWriter, r *http.Request) {
 	price, _ := strconv.Atoi(r.FormValue("price"))
 	quota, _ := strconv.Atoi(r.FormValue("quota"))
 
-	// request trip
+	// struct createTripRequest dto di isikan dengan input form value
 	request := tripsdto.CreateTripRequest{
 		Title:          r.FormValue("title"),
 		CountryId:      CountryId,
@@ -111,6 +115,7 @@ func (h *handlerTrip) CreateTrip(w http.ResponseWriter, r *http.Request) {
 	// parse DateTrip menjadi string
 	date, _ := time.Parse("2 January 2006", request.DateTrip)
 
+	// struct trip di isi dengan request
 	trip := models.Trip{
 		Title:          request.Title,
 		CountryId:      request.CountryId,
@@ -138,6 +143,7 @@ func (h *handlerTrip) CreateTrip(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+// function update trip
 func (h *handlerTrip) UpdateTrip(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -156,6 +162,15 @@ func (h *handlerTrip) UpdateTrip(w http.ResponseWriter, r *http.Request) {
 		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
 		json.NewEncoder(w).Encode(response)
 		return
+	}
+
+	// middleware
+	dataContex := r.Context().Value("dataFile")
+	filename := dataContex.(string)
+
+	// request image agar nantinya image dapat diupdate
+	request := tripsdto.UpdateTripRequest{
+		Image: filename,
 	}
 
 	// title
@@ -215,13 +230,9 @@ func (h *handlerTrip) UpdateTrip(w http.ResponseWriter, r *http.Request) {
 		trip.Description = r.FormValue("description")
 	}
 
-	// middleware
-	dataContex := r.Context().Value("dataFile")
-	filename := dataContex.(string)
-
 	// image
-	if r.FormValue("image") != "" {
-		trip.Image = filename
+	if request.Image != "" {
+		trip.Image = request.Image
 	}
 
 	newTrip, err := h.TripRepository.UpdateTrip(trip)
@@ -237,6 +248,7 @@ func (h *handlerTrip) UpdateTrip(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+// function delete trip
 func (h *handlerTrip) DeleteTrip(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -262,6 +274,7 @@ func (h *handlerTrip) DeleteTrip(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+// response trip
 func convertResponseTrip(u models.Trip) tripsdto.TripResponse {
 	return tripsdto.TripResponse{
 		Id:             u.Id,
