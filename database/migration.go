@@ -8,14 +8,14 @@ import (
 
 // Jika aplikasi berjalan maka auto migration akan berjalan
 func RunMigration() {
-	// koneksi database akan melakukan auto migrasi struct user ke database
-	err := mysql.DB.AutoMigrate(
+	// koneksi database akan melakukan auto migrasi struct/models ke dalam database mysql
+	err := mysql.DB.AutoMigrate( // panggil mysql lalu DB(pkg/mysql) lalu panggil function AutoMigrate()
 		&models.User{},
 		&models.Trip{},
 		&models.Country{},
 		&models.Transaction{},
 	)
-	// jika tidak ada error
+	// jika ada error maka panggil panic
 	if err != nil {
 		fmt.Println(err)
 		panic("Migration failed")

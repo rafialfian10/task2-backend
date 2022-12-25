@@ -19,6 +19,7 @@ type Trip struct {
 	Image          string          `json:"image" form:"image" gorm:"type: varchar(255)"`
 }
 
+// relation database (to transaction)
 type TripResponse struct {
 	Id             int             `json:"id"`
 	Title          string          `json:"title"`

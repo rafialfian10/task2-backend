@@ -15,6 +15,7 @@ type Result struct {
 	Message string      `json:"message"`
 }
 
+// function Auth berfungsi untuk validasi token(user baru dapat melakukan CRUD setelah memasukkan token)
 func Auth(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")

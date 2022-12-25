@@ -27,11 +27,14 @@ func HandlerAuth(AuthRepository repositories.AuthRepository) *handlerAuth {
 	return &handlerAuth{AuthRepository}
 }
 
-// Function register
+// membuat struct function Register
 func (h *handlerAuth) Register(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	// panggil method new, dan dto RegisterRequest akan digunakan sebagai parameter
 	request := new(authdto.RegisterRequest)
+
+	// err akan decode menjadi data aslinya dan akan di request di body, dan jika ada error maka panggil ErrorResult lalu encode response
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
@@ -39,6 +42,7 @@ func (h *handlerAuth) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// lakukan validasi
 	validation := validator.New()
 	err := validation.Struct(request)
 	if err != nil {
@@ -48,7 +52,7 @@ func (h *handlerAuth) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Hashing password
+	// Hashing password request.Password(registerRequest) dengan method HashingPassword
 	password, err := bcrypt.HashingPassword(request.Password)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -57,6 +61,7 @@ func (h *handlerAuth) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// jika tidak ada error struct user akan diisi dengan request
 	user := models.User{
 		Name:     request.Name,
 		Email:    request.Email,
@@ -65,18 +70,23 @@ func (h *handlerAuth) Register(w http.ResponseWriter, r *http.Request) {
 		Address:  request.Address,
 	}
 
+	// panggil Register lalu user akan digunakan sebagai parameter
 	data, err := h.AuthRepository.Register(user)
+
+	// jika ada error maka panggil ErrorResult
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		response := dto.ErrorResult{Code: http.StatusInternalServerError, Message: err.Error()}
 		json.NewEncoder(w).Encode(response)
 	}
 
+	// jika tidak ada error maka panggil SuccesResult dan data akan di isi dengan func convertresponseRegister
 	w.WriteHeader(http.StatusOK)
 	response := dto.SuccessResult{Code: http.StatusOK, Data: convertResponseRegister(data)}
 	json.NewEncoder(w).Encode(response)
 }
 
+// function convertResponseRegister
 func convertResponseRegister(u models.User) authdto.RegisterResponse {
 	return authdto.RegisterResponse{
 		Email:    u.Email,
@@ -84,11 +94,14 @@ func convertResponseRegister(u models.User) authdto.RegisterResponse {
 	}
 }
 
-// Function Login
+// membuat struct function Login
 func (h *handlerAuth) Login(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	// panggil method new, dan dto LoginRequest akan digunakan sebagai parameter
 	request := new(authdto.LoginRequest)
+
+	// err akan decode menjadi data aslinya dan akan di request di body, dan jika ada error maka panggil ErrorResult lalu encode response
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
@@ -96,13 +109,16 @@ func (h *handlerAuth) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// jika tidak ada error struct user akan diisi dengan request
 	user := models.User{
 		Email:    request.Email,
 		Password: request.Password,
 	}
 
+	// panggil Register lalu user.Email akan digunakan sebagai parameter
 	user, err := h.AuthRepository.Login(user.Email)
-	// misal email gak ada
+
+	// jika ada error maka panggil ErrorResult
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
@@ -110,8 +126,10 @@ func (h *handlerAuth) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// check password
+	// check password dengan method CheckPasswordHash. par request.Password dan user.Password akan di cek
 	isValid := bcrypt.CheckPasswordHash(request.Password, user.Password)
+
+	// jika tidak valid maka panggil ErrorResult
 	if !isValid {
 		w.WriteHeader(http.StatusBadRequest)
 		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: "salah email atau password"}
@@ -119,19 +137,25 @@ func (h *handlerAuth) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// membuat data yang akan disimpan di jwt
 	claims := jwt.MapClaims{}
-	claims["id"] = user.Id
+
+	claims["id"] = user.Id // buat key id valuenya user.Id
 	claims["email"] = user.Email
 	claims["password"] = user.Password
-	claims["exp"] = time.Now().Add(time.Hour * 2).Unix()
+	claims["exp"] = time.Now().Add(time.Hour * 2).Unix() // mak token 2 jam
 
+	// panggil method GenerateToken(agar dibuatkan token) dan claim akan dijadikan parameter
 	token, err := jwtToken.GenerateToken(&claims)
+
+	// jika ada error / tidak ada token maka err
 	if err != nil {
 		log.Println(err)
 		fmt.Println("Unauthorize")
 		return
 	}
 
+	// jika tidak ada error struct LoginResponse akan di isi data request user
 	loginResponse := authdto.LoginResponse{
 		Name:     user.Name,
 		Email:    user.Email,
@@ -139,6 +163,7 @@ func (h *handlerAuth) Login(w http.ResponseWriter, r *http.Request) {
 		Token:    token,
 	}
 
+	// dan login loginResponse akan dijadikan value dari data
 	w.Header().Set("Content-Type", "application/json")
 	response := dto.SuccessResult{Code: http.StatusOK, Data: loginResponse}
 	json.NewEncoder(w).Encode(response)

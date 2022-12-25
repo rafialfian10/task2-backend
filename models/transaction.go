@@ -7,5 +7,5 @@ type Transaction struct {
 	Status     string       `json:"status" form:"status" gorm:"type: varchar(255)"`
 	Image      string       `json:"image" form:"image" gorm:"type: varchar(255)"`
 	TripId     int          `json:"-"`
-	Trip       TripResponse `json:"trip" gorm:"foreignKey:trip_id"`
+	Trip       TripResponse `json:"trip"`
 }

@@ -10,7 +10,10 @@ import (
 )
 
 func TripRoutes(r *mux.Router) {
+	// panggil repositoryTrip isikan parameter mywal.DB dan simpan ke dalam variabel
 	TripRepository := repositories.RepositoriyTrip(mysql.DB)
+
+	// panggil HandlerTrip dari (handlers/trip)
 	h := handlers.HandlerTrip(TripRepository)
 
 	r.HandleFunc("/trips", h.FindTrips).Methods("GET")

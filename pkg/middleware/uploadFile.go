@@ -9,12 +9,10 @@ import (
 	dto "project/dto/result"
 )
 
+// function Upload file untuk upload file
 func UploadFile(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Upload file
-		// FormFile returns the first file for the given key `myFile`
-		// it also returns the FileHeader so we can get the Filename,
-		// the Header and the size of the file
+
 		file, _, err := r.FormFile("image")
 
 		if err != nil {

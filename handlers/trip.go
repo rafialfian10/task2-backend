@@ -16,6 +16,7 @@ import (
 
 var path_file_trip = "http://localhost:3000/uploads/"
 
+// membuat struct handlerTrip untuk menghandle TripRepository. handlerTrip akan dipanggil ke setiap function
 type handlerTrip struct {
 	TripRepository repositories.TripRepository
 }
@@ -24,17 +25,18 @@ func HandlerTrip(TripRepository repositories.TripRepository) *handlerTrip {
 	return &handlerTrip{TripRepository}
 }
 
-// function find trips (all trip)
+// membuat struct function findTrips (all trip). parameter adalah struct handlerTrip
 func (h *handlerTrip) FindTrips(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json") // Header berfungsi untuk menampilkan data.(text-html /json)
 
+	// panggil function FindTrip didalam handlerTrip
 	trips, err := h.TripRepository.FindTrips()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(err.Error())
+		json.NewEncoder(w).Encode(err.Error()) // Error akan diEncode dan akan dikirim sebagai respon
 	}
 
-	// looping image pada trip
+	// looping image pada trip, lalu trips akan di isi dengan data image dari struct
 	for i, data := range trips {
 		trips[i].Image = path_file_trip + data.Image
 	}
@@ -44,12 +46,13 @@ func (h *handlerTrip) FindTrips(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-// function get trip
+// membuat struct function GetTrip . parameter adalah struct handlerTrip
 func (h *handlerTrip) GetTrip(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 
+	// panggil function GetTrip didalam handlerTrip dengan index tertentu
 	trip, err := h.TripRepository.GetTrip(id)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -58,18 +61,19 @@ func (h *handlerTrip) GetTrip(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// jika tidak ada error maka image akan di isi dengan path image
 	trip.Image = path_file_trip + trip.Image
 
 	w.WriteHeader(http.StatusOK)
 	response := dto.SuccessResult{Code: http.StatusOK, Data: trip}
-	json.NewEncoder(w).Encode(response)
+	json.NewEncoder(w).Encode(response) // response akan diEncode dan akan dikirim sebagai respon
 }
 
-// function create trip
+// membuat struct function CreateTrip . parameter adalah struct handlerTrip
 func (h *handlerTrip) CreateTrip(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	// middleware
+	// middleware image
 	dataContex := r.Context().Value("dataFile")
 	filename := dataContex.(string)
 
@@ -80,7 +84,7 @@ func (h *handlerTrip) CreateTrip(w http.ResponseWriter, r *http.Request) {
 	price, _ := strconv.Atoi(r.FormValue("price"))
 	quota, _ := strconv.Atoi(r.FormValue("quota"))
 
-	// struct createTripRequest dto di isikan dengan input form value
+	// struct createTripRequest (dto) untuk melakukan request body form
 	request := tripsdto.CreateTripRequest{
 		Title:          r.FormValue("title"),
 		CountryId:      CountryId,
@@ -103,6 +107,7 @@ func (h *handlerTrip) CreateTrip(w http.ResponseWriter, r *http.Request) {
 	// 	return
 	// }
 
+	// validasi request jika ada error maka panggil ErrorResult
 	validation := validator.New()
 	err := validation.Struct(request)
 	if err != nil {
@@ -131,19 +136,24 @@ func (h *handlerTrip) CreateTrip(w http.ResponseWriter, r *http.Request) {
 		Image:          request.Image,
 	}
 
+	// panggil function CreateTrip didalam handlerTrip
 	data, err := h.TripRepository.CreateTrip(trip)
+
+	// jika tidak ada error maka panggil ErrorResult
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		response := dto.ErrorResult{Code: http.StatusInternalServerError, Message: err.Error()}
 		json.NewEncoder(w).Encode(response)
+		return
 	}
 
+	// jika  tidak ada error maka panggil SuccessResult
 	w.WriteHeader(http.StatusOK)
 	response := dto.SuccessResult{Code: http.StatusOK, Data: convertResponseTrip(data)}
 	json.NewEncoder(w).Encode(response)
 }
 
-// function update trip
+// membuat struct function UpdateTrip . parameter adalah struct handlerTrip
 func (h *handlerTrip) UpdateTrip(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -156,7 +166,11 @@ func (h *handlerTrip) UpdateTrip(w http.ResponseWriter, r *http.Request) {
 	// }
 
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
+
+	// panggil function GetTrip didalam handlerTrip dengan index tertentu
 	trip, err := h.TripRepository.GetTrip(int(id))
+
+	// jika ada error maka panggil ErrorResult
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
@@ -235,7 +249,10 @@ func (h *handlerTrip) UpdateTrip(w http.ResponseWriter, r *http.Request) {
 		trip.Image = request.Image
 	}
 
+	// panggil function UpdateTrip didalam handlerTrip untuk update semua data trip lalu tampung ke var new trip
 	newTrip, err := h.TripRepository.UpdateTrip(trip)
+
+	// jika ada error maka tampilkan ErrorResult
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		response := dto.ErrorResult{Code: http.StatusInternalServerError, Message: err.Error()}
@@ -243,6 +260,7 @@ func (h *handlerTrip) UpdateTrip(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// jika tidak ada error maka SuccessResult
 	w.WriteHeader(http.StatusOK)
 	response := dto.SuccessResult{Code: http.StatusOK, Data: convertResponseTrip(newTrip)}
 	json.NewEncoder(w).Encode(response)
@@ -253,7 +271,11 @@ func (h *handlerTrip) DeleteTrip(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
+
+	// panggil function GetTrip didalam handlerTrip dengan index tertentu
 	trip, err := h.TripRepository.GetTrip(id)
+
+	// jika ada error panggil Errorresult
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
@@ -261,7 +283,10 @@ func (h *handlerTrip) DeleteTrip(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// panggil function DeleteTrip berdasarkan id
 	data, err := h.TripRepository.DeleteTrip(trip)
+
+	// jika ada error maka tampilkan errorResult
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		response := dto.ErrorResult{Code: http.StatusInternalServerError, Message: err.Error()}
@@ -269,12 +294,13 @@ func (h *handlerTrip) DeleteTrip(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// jika tidak ada error maka
 	w.WriteHeader(http.StatusOK)
 	response := dto.SuccessResult{Code: http.StatusOK, Data: convertResponseTrip(data)}
 	json.NewEncoder(w).Encode(response)
 }
 
-// response trip
+// function convert response trip
 func convertResponseTrip(u models.Trip) tripsdto.TripResponse {
 	return tripsdto.TripResponse{
 		Id:             u.Id,

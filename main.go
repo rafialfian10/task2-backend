@@ -12,6 +12,7 @@ import (
 
 func main() {
 
+	// route
 	route := mux.NewRouter()
 
 	// initial DB
@@ -20,7 +21,10 @@ func main() {
 	// run migration
 	database.RunMigration()
 
+	// // route untuk menginisialisasi folder dengan file, image css, js agar dapat diakses kedalam project
 	route.PathPrefix("/uploads").Handler(http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))))
+
+	// pathPrefix untuk membuat route baru. Subrouter untuk menguji route pada pathPrefix. RouteInit dari (routes/routes)
 	routes.RouteInit(route.PathPrefix("/api/v1").Subrouter())
 
 	fmt.Println("server running localhost:3000")
