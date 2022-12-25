@@ -2,6 +2,7 @@ package routes
 
 import (
 	"project/handlers"
+	"project/pkg/middleware"
 	"project/pkg/mysql"
 	"project/repositories"
 
@@ -14,7 +15,7 @@ func CountryRoutes(r *mux.Router) {
 
 	r.HandleFunc("/countries", h.FindCountries).Methods("GET")
 	r.HandleFunc("/country/{id}", h.GetCountry).Methods("GET")
-	r.HandleFunc("/country", h.CreateCountry).Methods("POST")
-	r.HandleFunc("/country/{id}", h.UpdateCountry).Methods("PATCH")
-	r.HandleFunc("/country/{id}", h.DeleteCountry).Methods("DELETE")
+	r.HandleFunc("/country", middleware.Auth(h.CreateCountry)).Methods("POST")
+	r.HandleFunc("/country/{id}", middleware.Auth(h.UpdateCountry)).Methods("PATCH")
+	r.HandleFunc("/country/{id}", middleware.Auth(h.DeleteCountry)).Methods("DELETE")
 }

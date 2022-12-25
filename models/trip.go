@@ -20,19 +20,20 @@ type Trip struct {
 }
 
 type TripResponse struct {
-	Id             int       `json:"id"`
-	Title          string    `json:"title"`
-	CountryId      int       `json:"country_id"`
-	Accomodation   string    `json:"accomodation"`
-	Transportation string    `json:"transportation"`
-	Eat            string    `json:"eat"`
-	Day            int       `json:"day"`
-	Night          int       `json:"night"`
-	DateTrip       time.Time `json:"datetrip"`
-	Price          int       `json:"price"`
-	Quota          int       `json:"quota"`
-	Description    string    `json:"description"`
-	Image          string    `json:"image"`
+	Id             int             `json:"id"`
+	Title          string          `json:"title"`
+	CountryId      int             `json:"-"`
+	Country        CountryResponse `json:"country_id"`
+	Accomodation   string          `json:"accomodation"`
+	Transportation string          `json:"transportation"`
+	Eat            string          `json:"eat"`
+	Day            int             `json:"day"`
+	Night          int             `json:"night"`
+	DateTrip       time.Time       `json:"datetrip"`
+	Price          int             `json:"price"`
+	Quota          int             `json:"quota"`
+	Description    string          `json:"description"`
+	Image          string          `json:"image"`
 }
 
 func (TripResponse) TableName() string {

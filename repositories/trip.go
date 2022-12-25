@@ -45,7 +45,7 @@ func (r *repository) UpdateTrip(trip models.Trip) (models.Trip, error) {
 }
 
 func (r *repository) DeleteTrip(trip models.Trip) (models.Trip, error) {
-	err := r.db.Debug().Delete(&trip).Error
+	err := r.db.Debug().Preload("Country").Delete(&trip).Error
 
 	return trip, err
 }

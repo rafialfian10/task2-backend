@@ -33,7 +33,7 @@ func (h *handlerTransaction) FindTransactions(w http.ResponseWriter, r *http.Req
 	}
 
 	for i, p := range transaction {
-		transaction[i].Attachment = path_file_trans + p.Attachment
+		transaction[i].Image = path_file_trans + p.Image
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -54,7 +54,7 @@ func (h *handlerTransaction) GetTransaction(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	trans.Attachment = path_file_trans + trans.Attachment
+	trans.Image = path_file_trans + trans.Image
 
 	w.WriteHeader(http.StatusOK)
 	response := dto.SuccessResult{Code: http.StatusOK, Data: trans}
@@ -76,7 +76,7 @@ func (h *handlerTransaction) CreateTransaction(w http.ResponseWriter, r *http.Re
 		CounterQty: counterQty,
 		Total:      total,
 		Status:     r.FormValue("status"),
-		Attachment: filename,
+		Image:      filename,
 		TripId:     TripId,
 	}
 
@@ -101,7 +101,7 @@ func (h *handlerTransaction) CreateTransaction(w http.ResponseWriter, r *http.Re
 		CounterQty: request.CounterQty,
 		Total:      request.Total,
 		Status:     request.Status,
-		Attachment: request.Attachment,
+		Image:      request.Image,
 		TripId:     request.TripId,
 	}
 
@@ -149,12 +149,12 @@ func (h *handlerTransaction) UpdateTransaction(w http.ResponseWriter, r *http.Re
 		transaction.Status = request.Status
 	}
 
-	if request.Attachment != "" {
-		transaction.Attachment = request.Attachment
+	if request.Image != "" {
+		transaction.Image = request.Image
 	}
 
 	if request.TripId != 0 {
-		transaction.Attachment = request.Attachment
+		transaction.TripId = request.TripId
 	}
 
 	data, err := h.TransactionRepository.UpdateTransaction(transaction)
@@ -201,7 +201,7 @@ func convertResponseTransaction(u models.Transaction) transactionsdto.Transactio
 		CounterQty: u.CounterQty,
 		Total:      u.Total,
 		Status:     u.Status,
-		Attacment:  u.Attachment,
+		Image:      u.Image,
 		TripId:     u.TripId,
 	}
 }
