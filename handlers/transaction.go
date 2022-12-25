@@ -128,14 +128,6 @@ func (h *handlerTransaction) UpdateTransaction(w http.ResponseWriter, r *http.Re
 	// 	return
 	// }
 
-	// middleware
-	dataContex := r.Context().Value("dataFile")
-	filename := dataContex.(string)
-
-	request := transactionsdto.UpdateTransactionRequest{
-		Image: filename,
-	}
-
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 	transaction, err := h.TransactionRepository.GetTransaction(int(id))
 	if err != nil {
@@ -143,6 +135,15 @@ func (h *handlerTransaction) UpdateTransaction(w http.ResponseWriter, r *http.Re
 		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
 		json.NewEncoder(w).Encode(response)
 		return
+	}
+
+	// middleware
+	dataContex := r.Context().Value("dataFile")
+	filename := dataContex.(string)
+
+	// request image agar nantinya image dapat diupdate
+	request := transactionsdto.UpdateTransactionRequest{
+		Image: filename,
 	}
 
 	// parse counter qty
