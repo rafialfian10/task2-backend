@@ -120,12 +120,20 @@ func (h *handlerTransaction) CreateTransaction(w http.ResponseWriter, r *http.Re
 func (h *handlerTransaction) UpdateTransaction(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	request := new(transactionsdto.UpdateTransactionRequest)
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
-		json.NewEncoder(w).Encode(response)
-		return
+	// request := new(transactionsdto.UpdateTransactionRequest)
+	// if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+	// 	w.WriteHeader(http.StatusBadRequest)
+	// 	response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
+	// 	json.NewEncoder(w).Encode(response)
+	// 	return
+	// }
+
+	// middleware
+	dataContex := r.Context().Value("dataFile")
+	filename := dataContex.(string)
+
+	request := transactionsdto.UpdateTransactionRequest{
+		Image: filename,
 	}
 
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
@@ -137,24 +145,32 @@ func (h *handlerTransaction) UpdateTransaction(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	if request.CounterQty != 0 {
-		transaction.CounterQty = request.CounterQty
+	// parse counter qty
+	counterQty, _ := strconv.Atoi(r.FormValue("qty"))
+	if counterQty != 0 {
+		transaction.CounterQty = counterQty
 	}
 
-	if request.Total != 0 {
-		transaction.Total = request.Total
+	// parse counter total
+	total, _ := strconv.Atoi(r.FormValue("total"))
+	if total != 0 {
+		transaction.Total = total
 	}
 
-	if request.Status != "" {
-		transaction.Status = request.Status
+	// status
+	if r.FormValue("status") != "" {
+		transaction.Status = r.FormValue("status")
 	}
 
-	if request.Image != "" {
+	// image
+	if r.FormValue("image") != "" {
 		transaction.Image = request.Image
 	}
 
-	if request.TripId != 0 {
-		transaction.TripId = request.TripId
+	// parse trip id
+	tripId, _ := strconv.Atoi(r.FormValue("trip_id"))
+	if tripId != 0 {
+		transaction.TripId = tripId
 	}
 
 	data, err := h.TransactionRepository.UpdateTransaction(transaction)

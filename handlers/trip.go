@@ -241,7 +241,7 @@ func (h *handlerTrip) DeleteTrip(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
-	user, err := h.TripRepository.GetTrip(id)
+	trip, err := h.TripRepository.GetTrip(id)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
@@ -249,7 +249,7 @@ func (h *handlerTrip) DeleteTrip(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := h.TripRepository.DeleteTrip(user)
+	data, err := h.TripRepository.DeleteTrip(trip)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		response := dto.ErrorResult{Code: http.StatusInternalServerError, Message: err.Error()}
