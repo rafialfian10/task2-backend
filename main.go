@@ -36,8 +36,10 @@ func main() {
 	// pathPrefix untuk membuat route baru. Subrouter untuk menguji route pada pathPrefix. RouteInit dari (routes/routes)
 	routes.RouteInit(route.PathPrefix("/api/v1").Subrouter())
 
-	fmt.Println("server running localhost:3000")
-	http.ListenAndServe("localhost:"+os.Getenv("PORT"), route)
+	var port = os.Getenv("PORT")
+
+	fmt.Println("server running localhost:" + port)
+	http.ListenAndServe("localhost:"+port, route)
 }
 
 // lifecycle: models ---> koneksi mysql ---> database migration ---> repositories ---> dto ---> handlers ---> routers
