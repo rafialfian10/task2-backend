@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"fmt"
 	"project/models"
 
 	"gorm.io/gorm"
@@ -48,7 +49,9 @@ func (r *repository) CreateTrip(trip models.Trip) (models.Trip, error) {
 func (r *repository) UpdateTrip(trip models.Trip) (models.Trip, error) {
 	// err := r.db.Debug().Preload("Country").Save(&trip).Error
 
-	err := r.db.Exec("UPDATE trips SET title=?, country_id=?, accomodation=?, transportation=?, eat=?, day=?, night=?, date_trip=?, price=?, quota=?, description=?, image=? WHERE trips.id=?", trip.Title, trip.CountryId, trip.Accomodation, trip.Transportation, trip.Eat, trip.Day, trip.Night, trip.DateTrip, trip.Price, trip.Quota, trip.Description, trip.Image, trip.Id).Error
+	fmt.Print(trip.CountryId)
+
+	err := r.db.Raw("UPDATE trips SET title=?, country_id=?, accomodation=?, transportation=?, eat=?, day=?, night=?, date_trip=?, price=?, quota=?, description=?, image=? WHERE trips.id=?", trip.Title, trip.CountryId, trip.Accomodation, trip.Transportation, trip.Eat, trip.Day, trip.Night, trip.DateTrip, trip.Price, trip.Quota, trip.Description, trip.Image, trip.Id).Scan(&trip).Error
 
 	return trip, err
 }

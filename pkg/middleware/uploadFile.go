@@ -22,13 +22,12 @@ func UploadFile(next http.HandlerFunc) http.HandlerFunc {
 		}
 		defer file.Close()
 
-		// fmt.Printf("Uploaded File: %+v\n", handler.Filename)
-		// fmt.Printf("File Size: %+v\n", handler.Size)
-		// fmt.Printf("MIME Header: %+v\n", handler.Header)
-		const MAX_UPLOAD_SIZE = 10 << 20 // 10MB
-		// Parse our multipart form, 10 << 20 specifies a maximum
-		// upload of 10 MB files.
+		const MAX_UPLOAD_SIZE = 10 << 20 // masksimal file upload 10mb
+
+		// var MAX_UPLOAD_SIZE akan diparse
 		r.ParseMultipartForm(MAX_UPLOAD_SIZE)
+
+		// if contentLength lebih besar dari file yang diupload maka panggil ErrorResult
 		if r.ContentLength > MAX_UPLOAD_SIZE {
 			w.WriteHeader(http.StatusBadRequest)
 			response := dto.ErrorResult{Code: http.StatusBadRequest, Message: "Max size in 1mb"}
@@ -36,8 +35,7 @@ func UploadFile(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		// Create a temporary file within our temp-images directory that follows
-		// a particular naming pattern
+		// jika ukuran file sudah dibawah maksimal upload file maka file masuk ke folder upload
 		tempFile, err := ioutil.TempFile("uploads", "image-*.png")
 		if err != nil {
 			fmt.Println(err)
@@ -47,8 +45,7 @@ func UploadFile(next http.HandlerFunc) http.HandlerFunc {
 		}
 		defer tempFile.Close()
 
-		// read all of the contents of our uploaded file into a
-		// byte array
+		// baca semua isi file yang kita upload, jika ada error maka tampilkan err
 		fileBytes, err := ioutil.ReadAll(file)
 		if err != nil {
 			fmt.Println(err)
@@ -58,9 +55,9 @@ func UploadFile(next http.HandlerFunc) http.HandlerFunc {
 		tempFile.Write(fileBytes)
 
 		data := tempFile.Name()
-		filename := data[8:] // split uploads/
+		filename := data[8:] // split uploads(huruf paling 8 depan akan diambil)
 
-		// add filename to ctx
+		// filename akan ditambahkan kedalam variable ctx. dan r.Context akan di panggil jika ingin upload file
 		ctx := context.WithValue(r.Context(), "dataFile", filename)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

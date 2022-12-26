@@ -75,7 +75,7 @@ func (h *handlerTrip) CreateTrip(w http.ResponseWriter, r *http.Request) {
 
 	// middleware image
 	dataContex := r.Context().Value("dataFile")
-	filename := dataContex.(string)
+	filename := dataContex.(string) // filename akan dipanggil di request
 
 	//parse data
 	CountryId, _ := strconv.Atoi(r.FormValue("country_id"))
@@ -107,7 +107,7 @@ func (h *handlerTrip) CreateTrip(w http.ResponseWriter, r *http.Request) {
 	// 	return
 	// }
 
-	// validasi request jika ada error maka panggil ErrorResult
+	// validasi request jika ada error maka panggil ErrorResult(jika ada request kosong maka error)
 	validation := validator.New()
 	err := validation.Struct(request)
 	if err != nil {
@@ -190,6 +190,12 @@ func (h *handlerTrip) UpdateTrip(w http.ResponseWriter, r *http.Request) {
 	// title
 	if r.FormValue("title") != "" {
 		trip.Title = r.FormValue("title")
+	}
+
+	// country id
+	countryId, _ := strconv.Atoi(r.FormValue("country_id"))
+	if countryId != 0 {
+		trip.CountryId = countryId
 	}
 
 	// accomodation

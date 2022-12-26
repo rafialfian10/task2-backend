@@ -41,7 +41,7 @@ func (r *repository) CreateTransaction(transaction models.Transaction) (models.T
 func (r *repository) UpdateTransaction(transaction models.Transaction) (models.Transaction, error) {
 	// err := r.db.Preload("Trip").Save(&transaction).Error
 
-	err := r.db.Exec("UPDATE transactions SET counter_qty=?, total=?, status=?, image=?, trip_id=? WHERE transactions.id=?", transaction.CounterQty, transaction.Total, transaction.Status, transaction.Image, transaction.Id, transaction.Id).Error
+	err := r.db.Raw("UPDATE transactions SET counter_qty=?, total=?, status=?, image=?, trip_id=? WHERE transactions.id=?", transaction.CounterQty, transaction.Total, transaction.Status, transaction.Image, transaction.TripId, transaction.Id).Scan(&transaction).Error
 
 	return transaction, err
 }
