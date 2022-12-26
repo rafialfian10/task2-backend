@@ -2,15 +2,24 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 	"project/database"
 	"project/pkg/mysql"
 	"project/routes"
 
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+
+	// env
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
 	// route
 	route := mux.NewRouter()
@@ -28,7 +37,7 @@ func main() {
 	routes.RouteInit(route.PathPrefix("/api/v1").Subrouter())
 
 	fmt.Println("server running localhost:3000")
-	http.ListenAndServe("localhost:3000", route)
+	http.ListenAndServe("localhost:"+os.Getenv("PORT"), route)
 }
 
 // lifecycle: models ---> koneksi mysql ---> database migration ---> repositories ---> dto ---> handlers ---> routers
