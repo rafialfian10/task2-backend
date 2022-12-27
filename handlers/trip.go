@@ -84,7 +84,7 @@ func (h *handlerTrip) CreateTrip(w http.ResponseWriter, r *http.Request) {
 	price, _ := strconv.Atoi(r.FormValue("price"))
 	quota, _ := strconv.Atoi(r.FormValue("quota"))
 
-	// struct createTripRequest (dto) untuk melakukan request body form
+	// struct createTripRequest (dto) untuk menampung data
 	request := tripsdto.CreateTripRequest{
 		Title:          r.FormValue("title"),
 		CountryId:      CountryId,

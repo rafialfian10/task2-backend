@@ -137,7 +137,7 @@ func (h *handlerAuth) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// membuat data yang akan disimpan di jwt
+	// membuat data yang akan disimpan di jwt dan claim akan digunakan untuk generate token
 	claims := jwt.MapClaims{}
 
 	claims["id"] = user.Id // buat key id valuenya user.Id
