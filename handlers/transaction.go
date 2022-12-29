@@ -10,10 +10,11 @@ import (
 	"strconv"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/mux"
 )
 
-var path_file_trans = "http://localhost:3000/uploads/"
+var path_file_trans = "http://localhost:5000/uploads/"
 
 type handlerTransaction struct {
 	TransactionRepository repositories.TransactionRepository
@@ -64,13 +65,19 @@ func (h *handlerTransaction) GetTransaction(w http.ResponseWriter, r *http.Reque
 func (h *handlerTransaction) CreateTransaction(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	dataContex := r.Context().Value("dataFile") // add this code
+	// get data user token
+	userInfo := r.Context().Value("userInfo").(jwt.MapClaims)
+	userId := int(userInfo["id"].(float64))
+
+	// middleware upload file
+	dataContex := r.Context().Value("dataFile")
 	filename := dataContex.(string)
 
 	//parse data
 	counterQty, _ := strconv.Atoi(r.FormValue("qty"))
 	total, _ := strconv.Atoi(r.FormValue("total"))
 	TripId, _ := strconv.Atoi(r.FormValue("trip_id"))
+	// UserId, _ := strconv.Atoi(r.FormValue("user_id"))
 
 	request := transactionsdto.CreateTransactionRequest{
 		CounterQty: counterQty,
@@ -78,15 +85,8 @@ func (h *handlerTransaction) CreateTransaction(w http.ResponseWriter, r *http.Re
 		Status:     r.FormValue("status"),
 		Image:      filename,
 		TripId:     TripId,
+		UserId:     userId,
 	}
-
-	// request := new(transactionsdto.CreateTransactionRequest)
-	// if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-	// 	w.WriteHeader(http.StatusBadRequest)
-	// 	response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
-	// 	json.NewEncoder(w).Encode(response)
-	// 	return
-	// }
 
 	validation := validator.New()
 	err := validation.Struct(request)
@@ -103,8 +103,10 @@ func (h *handlerTransaction) CreateTransaction(w http.ResponseWriter, r *http.Re
 		Status:     request.Status,
 		Image:      request.Image,
 		TripId:     request.TripId,
+		UserId:     userId,
 	}
 
+	// panggil Transaction repository dan masukkan transaction ke dalam kedalam function CreateTransaction
 	data, err := h.TransactionRepository.CreateTransaction(transaction)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -112,21 +114,22 @@ func (h *handlerTransaction) CreateTransaction(w http.ResponseWriter, r *http.Re
 		json.NewEncoder(w).Encode(response)
 	}
 
+	// panggil function getTrip agar setelah data di create data id akan keluar response
+	transactionResponse, err := h.TransactionRepository.GetTransaction(data.Id)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Code: http.StatusOK, Data: convertResponseTransaction(data)}
+	response := dto.SuccessResult{Code: http.StatusOK, Data: convertResponseTransaction(transactionResponse)}
 	json.NewEncoder(w).Encode(response)
 }
 
 func (h *handlerTransaction) UpdateTransaction(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-
-	// request := new(transactionsdto.UpdateTransactionRequest)
-	// if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-	// 	w.WriteHeader(http.StatusBadRequest)
-	// 	response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
-	// 	json.NewEncoder(w).Encode(response)
-	// 	return
-	// }
 
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 	transaction, err := h.TransactionRepository.GetTransaction(int(id))
@@ -174,6 +177,7 @@ func (h *handlerTransaction) UpdateTransaction(w http.ResponseWriter, r *http.Re
 		transaction.TripId = tripId
 	}
 
+	// panggil Transaction repository dan masukkan transaction ke dalam kedalam function UpdateTransaction
 	data, err := h.TransactionRepository.UpdateTransaction(transaction)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -182,8 +186,17 @@ func (h *handlerTransaction) UpdateTransaction(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	// panggil function getTrip agar setelah data di create data id akan keluar response
+	newtransactionResponse, err := h.TransactionRepository.GetTransaction(data.Id)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Code: http.StatusOK, Data: convertResponseTransaction(data)}
+	response := dto.SuccessResult{Code: http.StatusOK, Data: convertResponseTransaction(newtransactionResponse)}
 	json.NewEncoder(w).Encode(response)
 }
 

@@ -58,12 +58,8 @@ func (h *handlerCountry) GetCountry(w http.ResponseWriter, r *http.Request) {
 func (h *handlerCountry) CreateCountry(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	request := new(countriesdto.CreateCountryRequest)
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
-		json.NewEncoder(w).Encode(response)
-		return
+	request := countriesdto.CreateCountryRequest{
+		Name: r.FormValue("name"),
 	}
 
 	validation := validator.New()

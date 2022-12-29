@@ -8,4 +8,6 @@ type Transaction struct {
 	Image      string       `json:"image" form:"image" gorm:"type: varchar(255)"`
 	TripId     int          `json:"-"`
 	Trip       TripResponse `json:"trip"`
+	UserId     int          `json:"-"`
+	User       UserResponse `json:"user"`
 }

@@ -14,7 +14,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var path_file_trip = "http://localhost:3000/uploads/"
+var path_file_trip = "http://localhost:5000/uploads/"
 
 // membuat struct handlerTrip untuk menghandle TripRepository. handlerTrip akan dipanggil ke setiap function
 type handlerTrip struct {
@@ -100,13 +100,6 @@ func (h *handlerTrip) CreateTrip(w http.ResponseWriter, r *http.Request) {
 		Image:          filename,
 	}
 
-	// if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-	// 	w.WriteHeader(http.StatusBadRequest)
-	// 	response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
-	// 	json.NewEncoder(w).Encode(response)
-	// 	return
-	// }
-
 	// validasi request jika ada error maka panggil ErrorResult(jika ada request kosong maka error)
 	validation := validator.New()
 	err := validation.Struct(request)
@@ -118,7 +111,7 @@ func (h *handlerTrip) CreateTrip(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// parse DateTrip menjadi string
-	date, _ := time.Parse("2 January 2006", request.DateTrip)
+	dateTrip, _ := time.Parse("2 January 2006", r.FormValue("datetrip"))
 
 	// struct trip di isi dengan request
 	trip := models.Trip{
@@ -129,7 +122,7 @@ func (h *handlerTrip) CreateTrip(w http.ResponseWriter, r *http.Request) {
 		Eat:            request.Eat,
 		Day:            request.Day,
 		Night:          request.Night,
-		DateTrip:       date,
+		DateTrip:       dateTrip,
 		Price:          request.Price,
 		Quota:          request.Quota,
 		Description:    request.Description,
@@ -147,23 +140,24 @@ func (h *handlerTrip) CreateTrip(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// panggil function getTrip agar setelah data di create data id akan keluar response
+	tripResponse, err := h.TripRepository.GetTrip(data.Id)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
 	// jika  tidak ada error maka panggil SuccessResult
 	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Code: http.StatusOK, Data: convertResponseTrip(data)}
+	response := dto.SuccessResult{Code: http.StatusOK, Data: convertResponseTrip(tripResponse)}
 	json.NewEncoder(w).Encode(response)
 }
 
 // membuat struct function UpdateTrip . parameter adalah struct handlerTrip
 func (h *handlerTrip) UpdateTrip(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-
-	// request := new(tripsdto.UpdateTripRequest)
-	// if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-	// 	w.WriteHeader(http.StatusBadRequest)
-	// 	response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
-	// 	json.NewEncoder(w).Encode(response)
-	// 	return
-	// }
 
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 
@@ -226,8 +220,7 @@ func (h *handlerTrip) UpdateTrip(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// parse time
-	date, _ := time.Parse("2 January 2006", r.FormValue("datetrip")) // form
-	// datetrip, _ := time.Parse("2 January 2006", request.DateTrip)
+	date, _ := time.Parse("2006-01-02", r.FormValue("datetrip"))
 	time := time.Now()
 	if date != time {
 		trip.DateTrip = date
@@ -266,9 +259,18 @@ func (h *handlerTrip) UpdateTrip(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// panggil function getTrip agar setelah data di create data id akan keluar response
+	newtripResponse, err := h.TripRepository.GetTrip(newTrip.Id)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
 	// jika tidak ada error maka SuccessResult
 	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Code: http.StatusOK, Data: convertResponseTrip(newTrip)}
+	response := dto.SuccessResult{Code: http.StatusOK, Data: convertResponseTrip(newtripResponse)}
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -317,7 +319,7 @@ func convertResponseTrip(u models.Trip) tripsdto.TripResponse {
 		Eat:            u.Eat,
 		Day:            u.Day,
 		Night:          u.Night,
-		DateTrip:       u.DateTrip,
+		DateTrip:       u.DateTrip.Format("2 January 2006"),
 		Price:          u.Price,
 		Quota:          u.Quota,
 		Description:    u.Description,

@@ -77,6 +77,7 @@ func (h *handlerUser) CreateUser(w http.ResponseWriter, r *http.Request) {
 		Name:     request.Name,
 		Email:    request.Email,
 		Password: request.Password,
+		Gender:   request.Gender,
 		Phone:    request.Phone,
 		Address:  request.Address,
 	}
@@ -123,6 +124,10 @@ func (h *handlerUser) UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	if request.Password != "" {
 		user.Password = request.Password
+	}
+
+	if request.Gender != "" {
+		user.Gender = request.Gender
 	}
 
 	if request.Phone != "" {
@@ -177,6 +182,7 @@ func convertResponseUser(u models.User) usersdto.UserResponse {
 		Name:     u.Name,
 		Email:    u.Email,
 		Password: u.Password,
+		Gender:   u.Gender,
 		Phone:    u.Phone,
 		Address:  u.Address,
 	}

@@ -66,6 +66,7 @@ func (h *handlerAuth) Register(w http.ResponseWriter, r *http.Request) {
 		Name:     request.Name,
 		Email:    request.Email,
 		Password: password,
+		Gender:   request.Gender,
 		Phone:    request.Phone,
 		Address:  request.Address,
 	}
@@ -141,6 +142,7 @@ func (h *handlerAuth) Login(w http.ResponseWriter, r *http.Request) {
 	claims := jwt.MapClaims{}
 
 	claims["id"] = user.Id // buat key id valuenya user.Id
+	claims["role"] = user.Role
 	claims["email"] = user.Email
 	claims["password"] = user.Password
 	claims["exp"] = time.Now().Add(time.Hour * 2).Unix() // mak token 2 jam
