@@ -1,8 +1,8 @@
 package authdto
 
 type RegisterResponse struct {
-	Email    string `json:"email" form:"email" validate:"required"`
-	Password string `json:"password" form:"password" validate:"required"`
+	Email    string `json:"email" form:"email"`
+	Password string `json:"password" form:"password"`
 }
 
 type LoginResponse struct {
@@ -10,4 +10,5 @@ type LoginResponse struct {
 	Email    string `json:"email" gorm:"type: varchar(255)"`
 	Password string `json:"password" gorm:"type: varchar(255)"`
 	Token    string `json:"token" gorm:"type: varchar(255)"`
+	Role     string `json:"role" gorm:"type: varchar(255)"`
 }

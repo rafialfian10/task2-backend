@@ -6,7 +6,6 @@ import (
 	"net/http"
 	dto "project/dto/result"
 	jwtToken "project/pkg/jwt"
-	"strings"
 )
 
 type ResultAdmin struct {
@@ -15,14 +14,12 @@ type ResultAdmin struct {
 	Message string      `json:"message"`
 }
 
-// function Auth berfungsi untuk validasi token(user baru dapat melakukan CRUD setelah memasukkan token)
 func AuthAdmin(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
+		// mengambil token dari request header
 		token := r.Header.Get("Authorization")
-
-		// jika token kosong maka panggil ErrorResult
 		if token == "" {
 			w.WriteHeader(http.StatusUnauthorized)
 			response := dto.ErrorResult{Code: http.StatusBadRequest, Message: "unauthorized"}
@@ -30,28 +27,27 @@ func AuthAdmin(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		// token akan displit dan diambil index ke 1 dan token akan dipanggil di DecodeToken
-		token = strings.Split(token, " ")[1]
+		// memvalidasi token dan mengambil nilai claim jika token tersebut valid
 		claims, err := jwtToken.DecodeToken(token)
-
-		// jika ada error maka panggil Result dan tampilkan pesan
-		if claims["role"] != "admin" {
-			w.WriteHeader(http.StatusUnauthorized)
-			response := ResultAdmin{Code: http.StatusUnauthorized, Message: "Anda bukan admin"}
-			json.NewEncoder(w).Encode(response)
-			return
-		}
-
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
-			response := ResultAdmin{Code: http.StatusUnauthorized, Message: "unauthorized"}
+			response := dto.ErrorResult{Code: http.StatusUnauthorized, Message: "unauthorized"}
 			json.NewEncoder(w).Encode(response)
 			return
 		}
 
-		//
+		role := claims["role"].(string)
+		if role != "admin" {
+			w.WriteHeader(http.StatusUnauthorized)
+			response := dto.ErrorResult{Code: http.StatusUnauthorized, Message: "unauthorized, you're not admin !"}
+			json.NewEncoder(w).Encode(response)
+			return
+		}
+
+		// menyiapkan context dengan key "userInfo" yang berisi jwt claim
 		ctx := context.WithValue(r.Context(), "userInfo", claims)
-		r = r.WithContext(ctx)
+
+		// mengirim nilai context ke object http.HandlerFunc yang menjadi parameter saat fungsi middleware ini dipanggil
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

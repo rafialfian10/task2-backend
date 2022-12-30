@@ -19,7 +19,7 @@ type UserResponse struct {
 	Gender   string `json:"gender"`
 	Phone    string `json:"phone"`
 	Address  string `json:"address"`
-	Role     string `json:"role"`
+	// Role     string `json:"role"`
 }
 
 func (UserResponse) TableName() string {

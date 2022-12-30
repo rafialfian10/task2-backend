@@ -69,10 +69,11 @@ func (h *handlerAuth) Register(w http.ResponseWriter, r *http.Request) {
 		Gender:   request.Gender,
 		Phone:    request.Phone,
 		Address:  request.Address,
+		Role:     "user",
 	}
 
 	// panggil Register lalu user akan digunakan sebagai parameter
-	data, err := h.AuthRepository.Register(user)
+	userData, err := h.AuthRepository.Register(user)
 
 	// jika ada error maka panggil ErrorResult
 	if err != nil {
@@ -83,7 +84,7 @@ func (h *handlerAuth) Register(w http.ResponseWriter, r *http.Request) {
 
 	// jika tidak ada error maka panggil SuccesResult dan data akan di isi dengan func convertresponseRegister
 	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Code: http.StatusOK, Data: convertResponseRegister(data)}
+	response := dto.SuccessResult{Code: http.StatusOK, Data: convertResponseRegister(userData)}
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -163,10 +164,68 @@ func (h *handlerAuth) Login(w http.ResponseWriter, r *http.Request) {
 		Email:    user.Email,
 		Password: user.Password,
 		Token:    token,
+		Role:     user.Role,
 	}
 
 	// dan login loginResponse akan dijadikan value dari data
 	w.Header().Set("Content-Type", "application/json")
 	response := dto.SuccessResult{Code: http.StatusOK, Data: loginResponse}
+	json.NewEncoder(w).Encode(response)
+}
+
+// membuat fungsi yang digunakan untuk mendaftarkan user baru
+func (h *handlerAuth) RegisterAdmin(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	// mengambil data user dari request body
+	var request authdto.RegisterRequest
+	json.NewDecoder(r.Body).Decode(&request)
+
+	// memvalidasi inputan dari request body berdasarkan struct dto.CountryRequest
+	validation := validator.New()
+	err := validation.Struct(request)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	// menghashing password
+	hashedPassword, err := bcrypt.HashingPassword(request.Password)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	// membuat object user baru dengan cetakan models.User
+	user := models.User{
+		Name:     request.Name,
+		Email:    request.Email,
+		Password: hashedPassword,
+		Gender:   request.Gender,
+		Phone:    request.Phone,
+		Address:  request.Address,
+		Role:     "admin",
+	}
+
+	// mengirim data user baru ke database
+	adminData, err := h.AuthRepository.Register(user)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		response := dto.ErrorResult{Code: http.StatusInternalServerError, Message: err.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	// menyiapkan response
+	w.WriteHeader(http.StatusOK)
+	response := dto.SuccessResult{
+		Code: http.StatusOK,
+		Data: convertResponseRegister(adminData),
+	}
+	// mengirim response
 	json.NewEncoder(w).Encode(response)
 }
