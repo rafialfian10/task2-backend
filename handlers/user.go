@@ -13,6 +13,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
+var path_file_user = "http://localhost:5000/uploads/"
+
 type handlerUser struct {
 	UserRepository repositories.UserRepository
 }
@@ -28,6 +30,11 @@ func (h *handlerUser) FindUsers(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(err.Error())
+	}
+
+	// looping image pada trip, lalu trips akan di isi dengan data image dari struct
+	for i, data := range users {
+		users[i].Image = path_file_user + data.Image
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -47,6 +54,9 @@ func (h *handlerUser) GetUser(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response)
 		return
 	}
+
+	// jika tidak ada error maka image akan di isi dengan path image
+	user.Image = path_file_user + user.Image
 
 	w.WriteHeader(http.StatusOK)
 	response := dto.SuccessResult{Code: http.StatusOK, Data: user}
@@ -77,7 +87,6 @@ func (h *handlerUser) CreateUser(w http.ResponseWriter, r *http.Request) {
 		Name:     request.Name,
 		Email:    request.Email,
 		Password: request.Password,
-		Gender:   request.Gender,
 		Phone:    request.Phone,
 		Address:  request.Address,
 	}
@@ -97,16 +106,12 @@ func (h *handlerUser) CreateUser(w http.ResponseWriter, r *http.Request) {
 func (h *handlerUser) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	request := new(usersdto.UpdateUserRequest)
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
-		json.NewEncoder(w).Encode(response)
-		return
-	}
-
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
+
+	// panggil function GetTrip didalam handlerTrip dengan index tertentu
 	user, err := h.UserRepository.GetUser(int(id))
+
+	// jika ada error maka panggil ErrorResult
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
@@ -114,31 +119,49 @@ func (h *handlerUser) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if request.Name != "" {
-		user.Name = request.Name
+	// middleware
+	dataContex := r.Context().Value("dataFile")
+	filename := dataContex.(string)
+
+	// request image agar nantinya image dapat diupdate
+	request := usersdto.UpdateUserRequest{
+		Image: filename,
 	}
 
-	if request.Email != "" {
-		user.Email = request.Email
+	// name
+	if r.FormValue("name") != "" {
+		user.Name = r.FormValue("name")
 	}
 
-	if request.Password != "" {
-		user.Password = request.Password
+	// email
+	if r.FormValue("email") != "" {
+		user.Email = r.FormValue("email")
 	}
 
-	if request.Gender != "" {
-		user.Gender = request.Gender
+	// password
+	if r.FormValue("password") != "" {
+		user.Password = r.FormValue("password")
 	}
 
-	if request.Phone != "" {
-		user.Phone = request.Phone
+	// phone
+	if r.FormValue("phone") != "" {
+		user.Phone = r.FormValue("phone")
 	}
 
-	if request.Address != "" {
-		user.Address = request.Address
+	// address
+	if r.FormValue("address") != "" {
+		user.Address = r.FormValue("address")
 	}
 
-	data, err := h.UserRepository.UpdateUser(user)
+	// image
+	if request.Image != "" {
+		user.Image = request.Image
+	}
+
+	// panggil function UpdateTrip didalam handlerTrip untuk update semua data trip lalu tampung ke var new trip
+	newUser, err := h.UserRepository.UpdateUser(user)
+
+	// jika ada error maka tampilkan ErrorResult
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		response := dto.ErrorResult{Code: http.StatusInternalServerError, Message: err.Error()}
@@ -146,8 +169,18 @@ func (h *handlerUser) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// panggil function getTrip agar setelah data di create data id akan keluar response
+	newUserResponse, err := h.UserRepository.GetUser(newUser.Id)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	// jika tidak ada error maka SuccessResult
 	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Code: http.StatusOK, Data: convertResponseUser(data)}
+	response := dto.SuccessResult{Code: http.StatusOK, Data: convertResponseUser(newUserResponse)}
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -185,5 +218,6 @@ func convertResponseUser(u models.User) usersdto.UserResponse {
 		Gender:   u.Gender,
 		Phone:    u.Phone,
 		Address:  u.Address,
+		Image:    u.Image,
 	}
 }

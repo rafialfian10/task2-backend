@@ -8,5 +8,6 @@ type UserResponse struct {
 	Gender   string `json:"gender" form:"gender"`
 	Phone    string `json:"phone" form:"phone"`
 	Address  string `json:"address" form:"address"`
+	Image    string `json:"image" form:"image"`
 	Role     string `json:"role" form:"role"`
 }

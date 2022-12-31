@@ -66,3 +66,10 @@ func main() {
 // const CONFIG_SENDER_NAME = "PT. Makmur Subur Jaya <emailanda@gmail.com>"
 // const CONFIG_AUTH_EMAIL = "emailanda@gmail.com"
 // const CONFIG_AUTH_PASSWORD = "passwordemailanda"
+
+// cara menjalankan ngrok
+// ngrok --authtoken 2JWW4Ppm0nhPLYeDcyyGIAUdd65_6pYH13uBZUv4DFSpryA2j
+
+// ngrok http 5000
+
+// copy authtoken dan paste di middtrans -> sandbox ->
